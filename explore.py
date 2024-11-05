@@ -10,7 +10,7 @@ def explore(start, zim):
     while stack:
         current = stack.pop()
 
-        print(f"Visiting: {current}")
+        # print(f"Visiting: {current}")
 
         parser = LinkParser()
         html = getHTML(current, zim)
