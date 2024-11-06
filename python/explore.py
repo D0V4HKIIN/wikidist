@@ -2,6 +2,8 @@ from linkparser import LinkParser
 from getHTML import getHTML
 
 # basically dfs to find all pages
+
+
 def explore(start, zim):
 
     stack = [start]
@@ -12,11 +14,8 @@ def explore(start, zim):
 
         # print(f"Visiting: {current}")
 
-        parser = LinkParser()
+        parser = LinkParser(zim)
         html = getHTML(current, zim)
-        if html is False:
-            print("doesn't exist in db")
-            continue
         parser.feed(html)
 
         for link in parser.links:
