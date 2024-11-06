@@ -1,0 +1,14 @@
+/home/jonas/Documents/code/wikidist/rust/target/debug/deps/libzim-cce77eb8d8053425.rmeta: /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/lib.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/cluster.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/directory_entry.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/directory_iterator.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/errors.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/mime_type.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/namespace.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/target.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/uuid.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/zim.rs
+
+/home/jonas/Documents/code/wikidist/rust/target/debug/deps/zim-cce77eb8d8053425.d: /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/lib.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/cluster.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/directory_entry.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/directory_iterator.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/errors.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/mime_type.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/namespace.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/target.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/uuid.rs /home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/zim.rs
+
+/home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/lib.rs:
+/home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/cluster.rs:
+/home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/directory_entry.rs:
+/home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/directory_iterator.rs:
+/home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/errors.rs:
+/home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/mime_type.rs:
+/home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/namespace.rs:
+/home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/target.rs:
+/home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/uuid.rs:
+/home/jonas/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zim-0.4.0/src/zim.rs:

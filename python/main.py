@@ -6,9 +6,9 @@ from explore import explore
 from adj_matrix import compute_adj
 
 
-# zim = Archive("/home/jonas/.local/share/kiwix/wikipedia_en_all_nopic_2024-06.zim")
-zim = Archive(
-    "/home/jonas/.var/app/org.kiwix.desktop/data/kiwix/wikipedia_en_100_nopic_2024-06.zim")
+zim = Archive("/home/jonas/.local/share/kiwix/wikipedia_en_100_nopic_2024-06.zim")
+# zim = Archive(
+    # "/home/jonas/.var/app/org.kiwix.desktop/data/kiwix/wikipedia_en_100_nopic_2024-06.zim")
 
 print(f"Main entry is at {zim.main_entry.get_item().path}")
 
