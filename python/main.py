@@ -6,19 +6,21 @@ from explore import explore
 from adj_matrix import compute_adj
 
 
-zim = Archive("/home/jonas/.local/share/kiwix/wikipedia_en_100_nopic_2024-06.zim")
+# zim = Archive("/home/jonas/.local/share/kiwix/wikipedia_en_all_nopic_2024-06.zim")
+zim = Archive(
+    "/home/jonas/.var/app/org.kiwix.desktop/data/kiwix/wikipedia_en_100_nopic_2024-06.zim")
 # zim = Archive(
-    # "/home/jonas/.var/app/org.kiwix.desktop/data/kiwix/wikipedia_en_100_nopic_2024-06.zim")
+    # "/home/jonas/.var/app/org.kiwix.desktop/data/kiwix/wikipedia_en_all_nopic_2024-06.zim")
 
-print(f"Main entry is at {zim.main_entry.get_item().path}")
+# print(f"Main entry is at {zim.main_entry.get_item().path}")
 
 entry = zim.main_entry.get_item().path
 
 pages = explore(entry, zim)
-print(zim.article_count)
+# print(zim.article_count)
 
-print("Found", len(pages), "pages")
-print(len(set(pages)))
+# print("Found", len(pages), "pages")
+# print(len(set(pages)))
 
 adj = compute_adj(pages, zim)
 
@@ -27,7 +29,7 @@ adj = compute_adj(pages, zim)
 # for b in pages:
 # print("from", a, "to", b, bfs(a, b, zim))
 
-# print(bfs(entry, "michael_jackson", zim))
+# print(bfs("Thirty_Years'_War", "Tautology_(language)", zim))
 
 
 # print(pages)
