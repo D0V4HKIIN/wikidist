@@ -109,9 +109,9 @@ unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> neighbors(zi
       continue;
     }
 
-    if (entry.getIndex() != a.getEntryByClusterOrder(entry.getIndex()).getItem(true).getIndex())
+    if (entry.getIndex() != a.getEntryByPath(entry.getIndex()).getIndex())
     {
-      cout << "different index" << endl;
+      cout << "different index " << entry.getIndex() << " red " << entry.isRedirect() << " from " << a.getEntryByClusterOrder(entry.getIndex()).getIndex() << endl;
     }
 
     ids.insert(item.getIndex());
@@ -122,12 +122,12 @@ unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> neighbors(zi
   for (zim::entry_index_type id : ids)
   {
     // cout << "getting " << id << endl;
-    zim::Entry entry = a.getEntryByClusterOrder(id);
+    zim::Entry entry = a.getEntryByPath(id);
     zim::Item item = entry.getItem(true);
 
     if (item.getIndex() != id)
     {
-      // cout << "index not matching " << entry.isRedirect() << endl;
+      cout << "index not matching " << entry.isRedirect() << endl;
     }
     vector<string> links = extractLinks(item.getData());
 
@@ -159,8 +159,7 @@ int main(int argc, char *argv[])
   try
   {
     std::cout << "loading archive" << std::endl;
-    zim::Archive a("/home/jonas/.var/app/org.kiwix.desktop/data/kiwix/"
-                   "wikipedia_en_100_nopic_2024-06.zim");
+    zim::Archive a("/home/jonas/.local/share/kiwix/wikipedia_en_100_nopic_2024-06.zim");
     std::cout << "archive loaded" << std::endl;
 
     unordered_set<string> titles{};
@@ -181,15 +180,15 @@ int main(int argc, char *argv[])
     else if (argc == 2 && strcmp(argv[1], "precompute") == 0)
     {
       unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> n = neighbors(a);
-      // for (auto a : n)
-      // {
-      // cout << a.first << ": ";
-      // for (auto b : a.second)
-      // {
-      // cout << b << ", ";
-      // }
-      // cout << "\n";
-      // }
+      for (auto a : n)
+      {
+      cout << a.first << ": ";
+      for (auto b : a.second)
+      {
+      cout << b << ", ";
+      }
+      cout << "\n";
+      }
       cout << "found " << n.size() << " neighbors" << endl;
       // write to disk
     }
