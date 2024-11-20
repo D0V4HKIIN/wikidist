@@ -87,6 +87,71 @@ void bfs(string from, string to, zim::Archive a)
   cout << "couldn't find a path between " << from_title << " to " << to_title << endl;
 }
 
+unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> neighbors(zim::Archive a)
+{
+  // get all relevant ids
+  unordered_set<zim::entry_index_type> ids{};
+  for (zim::Entry entry : a.iterEfficient())
+  {
+    if (entry.isRedirect())
+    {
+      continue;
+    }
+    zim::Item item = entry.getItem();
+    if (item.getMimetype() != "text/html")
+    {
+      continue;
+    }
+    // never happens but a nice check imo
+    if (ids.find(item.getIndex()) != ids.end())
+    {
+      cout << item.getTitle() << " already in db" << endl;
+      continue;
+    }
+
+    if (entry.getIndex() != a.getEntryByClusterOrder(entry.getIndex()).getItem(true).getIndex())
+    {
+      cout << "different index" << endl;
+    }
+
+    ids.insert(item.getIndex());
+  }
+
+  // compute neighbors map
+  unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> neighbors{};
+  for (zim::entry_index_type id : ids)
+  {
+    // cout << "getting " << id << endl;
+    zim::Entry entry = a.getEntryByClusterOrder(id);
+    zim::Item item = entry.getItem(true);
+
+    if (item.getIndex() != id)
+    {
+      // cout << "index not matching " << entry.isRedirect() << endl;
+    }
+    vector<string> links = extractLinks(item.getData());
+
+    vector<zim::entry_index_type> indexes{};
+    for (string link : links)
+    {
+      // cout << "getting n " << link << endl;
+      if (a.hasEntryByTitle(link))
+      {
+        indexes.push_back(a.getEntryByTitle(link).getIndex());
+      }
+    }
+    if (indexes.empty())
+    {
+      cout << "is empty" << endl;
+    }
+    // neighbors.insert(make_pair(item.getIndex(), indexes));
+    neighbors[id] = indexes;
+  }
+
+  cout << neighbors.size() << " " << ids.size() << endl;
+  return neighbors;
+}
+
 int main(int argc, char *argv[])
 {
   std::ios::sync_with_stdio(false);
@@ -95,38 +160,38 @@ int main(int argc, char *argv[])
   {
     std::cout << "loading archive" << std::endl;
     zim::Archive a("/home/jonas/.var/app/org.kiwix.desktop/data/kiwix/"
-                   "wikipedia_en_all_nopic_2024-06.zim");
+                   "wikipedia_en_100_nopic_2024-06.zim");
     std::cout << "archive loaded" << std::endl;
 
     unordered_set<string> titles{};
     unordered_set<string> paths{};
-    // for (zim::Entry entry : a.iterEfficient())
-    // {
-    //   if (entry.isRedirect())
-    //   {
-    //     continue;
-    //   }
-    //   zim::Item item = entry.getItem();
-    //   if (item.getMimetype() != "text/html")
-    //   {
-    //     continue;
-    //   }
-    //   titles.insert(entry.getTitle());
-    //   paths.insert(entry.getPath());
-    //   std::cout << "path: " << entry.getPath() << " title: " << entry.getTitle() << " mimetype: " << item.getMimetype() << "\n";
-    // }
 
     std::cout << a.getEntryCount() << " " << a.getMediaCount() << " "
               << a.getAllEntryCount() << " " << a.iterByTitle().size() << " "
               << a.getArticleCount() << " " << a.iterEfficient().size() << " "
               << titles.size() << " " << paths.size()
-              << "\n";
+              << endl;
 
     if (argc >= 3)
     {
       string from = argv[1];
       string to = argv[2];
       bfs(from, to, a);
+    }
+    else if (argc == 2 && strcmp(argv[1], "precompute") == 0)
+    {
+      unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> n = neighbors(a);
+      // for (auto a : n)
+      // {
+      // cout << a.first << ": ";
+      // for (auto b : a.second)
+      // {
+      // cout << b << ", ";
+      // }
+      // cout << "\n";
+      // }
+      cout << "found " << n.size() << " neighbors" << endl;
+      // write to disk
     }
   }
   catch (const std::exception &e)
