@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.turtleCode": "java",
+        "iostream": "cpp"
+    }
+}
