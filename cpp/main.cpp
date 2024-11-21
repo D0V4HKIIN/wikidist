@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <zim/archive.h>
 #include <zim/search_iterator.h>
 #include <zim/item.h>
@@ -9,13 +10,64 @@
 #include <regex>
 #include <vector>
 #include <algorithm>
+#include <omp.h>
 
 using namespace std;
 
-void printVector(vector<string> vector)
+template <typename T>
+void printVector(vector<T> &vector)
 {
-  std::copy(vector.begin(), vector.end(), std::ostream_iterator<string>(std::cout, ", "));
+  std::copy(vector.begin(), vector.end(), std::ostream_iterator<T>(std::cout, ", "));
   cout << endl;
+}
+
+void write(ostream &out, size_t s)
+{
+  out.write(reinterpret_cast<const char *>(&s), sizeof(s));
+}
+
+void serialize(ostream &out, unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> const &map)
+{
+  write(out, map.size());
+  for (auto const &p : map)
+  {
+    write(out, p.first);
+    write(out, p.second.size());
+    for (zim::entry_index_type const &e : p.second)
+    {
+      write(out, e);
+    }
+  }
+}
+
+size_t read(istream &in)
+{
+  size_t value;
+  in.read(reinterpret_cast<char *>(&value), sizeof(value));
+  return value;
+}
+
+unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> deserialize(istream &in)
+{
+  unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> map{};
+
+  size_t size = read(in);
+
+  for (size_t i = 0; i < size; i++)
+  {
+    zim::entry_index_type key = read(in);
+    size_t value_size = read(in);
+    vector<zim::entry_index_type> value;
+
+    for (size_t j = 0; j < value_size; j++)
+    {
+      zim::entry_index_type val = read(in);
+      value.push_back(val);
+    }
+    map[key] = value;
+  }
+
+  return map;
 }
 
 // thx chatgpt
@@ -38,57 +90,54 @@ std::vector<std::string> extractLinks(const std::string &html)
   return links;
 }
 
-void bfs(string from, string to, zim::Archive a)
+void bfs(string const &from_path, string const &to_path, zim::Archive &a, unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> &map)
 {
-  cout << "searching from " << from << " to " << to << endl;
-  assert(a.hasEntryByPath(from));
-  assert(a.hasEntryByPath(to));
+  cout << "searching from " << from_path << " to " << to_path << endl;
 
   // queue of titles
-  string from_title = a.getEntryByPath(from).getItem(true).getTitle();
-  string to_title = a.getEntryByPath(to).getItem(true).getTitle();
-  deque<string> queue{from_title};
-  unordered_set<string> visited{from_title};
-  unordered_map<string, string> parents{std::make_pair(from_title, "")};
+  zim::entry_index_type from = a.getEntryByPath(from_path).getItem(true).getIndex();
+  zim::entry_index_type to = a.getEntryByPath(to_path).getItem(true).getIndex();
+  deque<zim::entry_index_type> queue{from};
+  unordered_set<zim::entry_index_type> visited{from};
+  unordered_map<zim::entry_index_type, zim::entry_index_type> parents{std::make_pair(from, from)};
 
   while (!queue.empty())
   {
-    string current = queue.front();
+    zim::entry_index_type current = queue.front();
     queue.pop_front();
 
     cout << "current " << current << endl;
 
-    zim::Item item = a.getEntryByTitle(current).getItem(true);
-    vector<string> links = extractLinks(item.getData());
-    for (const string &link : links)
+    for (const zim::entry_index_type &n : map[current])
     {
-      if (link == to_title)
+      if (n == to)
       {
         cout << "found path at " << current << endl;
-        vector<string> path{link};
-        while (current != "")
+        vector<string> path{a.getEntryByPath(n).getTitle()};
+        while (current != from)
         {
-          path.push_back(current);
-          current = parents.at(current);
+          path.push_back(a.getEntryByPath(current).getTitle());
+          current = parents[current];
         }
         reverse(path.begin(), path.end());
         printVector(path);
         return;
       }
-      if (a.hasEntryByTitle(link) && visited.find(link) == visited.end())
+      if (visited.find(n) == visited.end())
       {
-        visited.insert(link);
-        parents.insert(make_pair(link, current));
-        queue.push_back(link);
+        visited.insert(n);
+        parents[n] = current;
+        queue.push_back(n);
       }
     }
   }
 
-  cout << "couldn't find a path between " << from_title << " to " << to_title << endl;
+  cout << "couldn't find a path between " << from_path << " to " << to_path << endl;
 }
 
-unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> neighbors(zim::Archive a)
+unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> neighbors(zim::Archive &a)
 {
+  cout << "finding all ids" << endl;
   // get all relevant ids
   unordered_set<zim::entry_index_type> ids{};
   for (zim::Entry entry : a.iterEfficient())
@@ -109,32 +158,29 @@ unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> neighbors(zi
       continue;
     }
 
-    if (entry.getIndex() != a.getEntryByPath(entry.getIndex()).getIndex())
-    {
-      cout << "different index " << entry.getIndex() << " red " << entry.isRedirect() << " from " << a.getEntryByClusterOrder(entry.getIndex()).getIndex() << endl;
-    }
-
     ids.insert(item.getIndex());
   }
 
+  cout << "copying set to vector" << endl;
+  vector<zim::entry_index_type> ids_vec{};
+  ids_vec.insert(ids_vec.end(), ids.begin(), ids.end());
+
+  cout << "finding neighbors" << endl;
   // compute neighbors map
   unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> neighbors{};
-  for (zim::entry_index_type id : ids)
+
+// #pragma omp declare reduction(merge : unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
+#pragma omp parallel for // reduction(merge : neighbors)
+  for (zim::entry_index_type id : ids_vec)
   {
-    // cout << "getting " << id << endl;
     zim::Entry entry = a.getEntryByPath(id);
     zim::Item item = entry.getItem(true);
 
-    if (item.getIndex() != id)
-    {
-      cout << "index not matching " << entry.isRedirect() << endl;
-    }
     vector<string> links = extractLinks(item.getData());
 
     vector<zim::entry_index_type> indexes{};
     for (string link : links)
     {
-      // cout << "getting n " << link << endl;
       if (a.hasEntryByTitle(link))
       {
         indexes.push_back(a.getEntryByTitle(link).getIndex());
@@ -142,9 +188,9 @@ unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> neighbors(zi
     }
     if (indexes.empty())
     {
-      cout << "is empty" << endl;
+      cout << a.getEntryByPath(id).getTitle() << " is has no neighbors" << endl;
     }
-    // neighbors.insert(make_pair(item.getIndex(), indexes));
+#pragma omp critical
     neighbors[id] = indexes;
   }
 
@@ -159,7 +205,7 @@ int main(int argc, char *argv[])
   try
   {
     std::cout << "loading archive" << std::endl;
-    zim::Archive a("/home/jonas/.local/share/kiwix/wikipedia_en_100_nopic_2024-06.zim");
+    zim::Archive a("/home/jonas/.local/share/kiwix/wikipedia_en_all_nopic_2024-06.zim");
     std::cout << "archive loaded" << std::endl;
 
     unordered_set<string> titles{};
@@ -175,22 +221,28 @@ int main(int argc, char *argv[])
     {
       string from = argv[1];
       string to = argv[2];
-      bfs(from, to, a);
+
+      assert(a.hasEntryByPath(from));
+      assert(a.hasEntryByPath(to));
+
+      cout << "reading file" << endl;
+      ifstream file;
+      file.open("neighbors.txt");
+      unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> n = deserialize(file);
+      file.close();
+      cout << "there are " << n.size() << "articles in file" << endl;
+
+      bfs(from, to, a, n);
     }
     else if (argc == 2 && strcmp(argv[1], "precompute") == 0)
     {
       unordered_map<zim::entry_index_type, vector<zim::entry_index_type>> n = neighbors(a);
-      for (auto a : n)
-      {
-      cout << a.first << ": ";
-      for (auto b : a.second)
-      {
-      cout << b << ", ";
-      }
-      cout << "\n";
-      }
       cout << "found " << n.size() << " neighbors" << endl;
       // write to disk
+      ofstream file;
+      file.open("neighbors.txt");
+      serialize(file, n);
+      file.close();
     }
   }
   catch (const std::exception &e)
